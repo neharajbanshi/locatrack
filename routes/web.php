@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LocationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/locations');
 });
+
+Route::get('/locations', [LocationController::class, 'index'])->name('location.index');
+Route::get('/locations/{id}', [LocationController::class, 'getNearestLocation'])->name('location.nearest');

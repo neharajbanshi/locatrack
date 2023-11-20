@@ -1,23 +1,10 @@
-FROM php:8.1
+FROM php:8.1-fpm
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip
+RUN apt-get update
+RUN apt-get install -y openssl zip unzip git curl
+RUN apt-get install -y libzip-dev libonig-dev libicu-dev
+RUN apt-get install -y autoconf pkg-config libssl-dev
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-install bcmath mbstring intl opcache
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-WORKDIR /var/www/html
-COPY . /var/www/html
-RUN composer install
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

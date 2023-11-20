@@ -10,14 +10,18 @@ services:
         volumes:
             - ./logs/apache:/var/log/apache2
             - .:/usr/local/apache2/htdocs/locatrack
+
     php:
         container_name: php
         build: ./docker/php
+        links:
+            - mysql
         ports:
-            - "9000:9000"
+            - "8000:8000"
         volumes:
             - .:/usr/local/apache2/htdocs/locatrack
         working_dir: /usr/local/apache2/htdocs/locatrack
+
     composer:
         container_name: composer
         image: composer/composer
@@ -31,14 +35,22 @@ services:
         image: mysql:8.0.27
         container_name: mysql
         environment:
-            MYSQL_ROOT_PASSWORD: supersecret
-            MYSQL_DATABASE: location_tracker
-            MYSQL_USER: lt_user
-            MYSQL_PASSWORD: secret
+            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
         ports:
             - "3306:3306"
         volumes:
             - ./database/mysql:/var/lib/mysql
+#        networks:
+#            - lt_network
+    #        healthcheck:
+    #            test: [ 'CMD', 'healthcheck.sh', '--connect', '--innodb_initialized' ]
+    #            interval: 10s
+    #            timeout: 30s
+    #            retries: 5
+    #            start_period: 30s
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
@@ -52,3 +64,29 @@ services:
         restart: always
         ports:
             - 8085:80
+#        networks:
+#            - lt_network
+
+#    seed:
+#        image: mysql:8.0.27
+#        environment:
+#            MYSQL_ROOT_PASSWORD: supersecret
+#            MYSQL_DATABASE: location_tracker
+#            MYSQL_USER: lt_user
+#            MYSQL_PASSWORD: secret
+#        volumes:
+#            - ./Data.csv:/root/Data.csv
+#            - ./script.sh:/root/script.sh
+#        networks:
+#            - lt_network
+##        command: ["sh", "-c", "/root/script.sh"]
+#        command:
+#            - |
+#                mysql -uroot -p${MYSQL_ROOT_PASSWORD} -h mysql ${MYSQL_DATABASE} -e LOAD DATA INFILE ‘/root/Data.csv' INTO TABLE location TERMINATED BY ',' LINES TERMINATED BY '\n' (address, city, state, zip, latitude, longitude);
+#        depends_on:
+#            - mysql
+#                condition: service_healthy
+#volumes:
+#    laravel-database:
+#networks:
+#    lt_network:
